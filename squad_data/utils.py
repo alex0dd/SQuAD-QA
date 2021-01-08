@@ -1,7 +1,7 @@
 import pandas as pd
 
 from . import Document
-from typing import Tuple, List, Dict
+from typing import Tuple, List, Dict, Any
 
 def build_mappers_and_dataframe(documents_list: List[Document]) -> Tuple[Dict[str, str], Dict[str, str], pd.DataFrame]:
     """
@@ -45,3 +45,41 @@ def build_mappers_and_dataframe(documents_list: List[Document]) -> Tuple[Dict[st
                         "answer_text": answer.text.strip()
                     })
     return paragraphs_mapper, questions_mapper, pd.DataFrame(dataframe_list)
+
+def get_spans_from_text(text: str) -> List[Tuple[int,int]]:
+    """
+    Given a text string return the list of spans, where each span represent
+    the single word/token inside the text in the form of:
+        ( start_position, start_position + len(token) )
+    """
+    current = 0
+    spans = []
+
+    tokens = text.split()
+    for token in tokens:
+        current = text.find(token, current)
+        if current < 0:
+            print(f"Token {token} cannot be found")
+            raise Exception()
+        spans.append((current, current + len(token)))
+        current += len(token)
+    return spans
+
+def add_paragraphs_spans(paragraphs_mapper: Dict[str, str]) -> Dict[str, Any]:
+    """
+    Extend the default paragraphs_mapper given by the build_mappers_and_dataframe
+    function with an additional field containing the spanned paragraph text
+ 
+    Args:
+        paragraph_mapper (Dict[str, str]): mapper from paragraph id to paragraph text
+
+    Returns:
+        paragraph_spans_mapper (Dict[str, Any]): a mapper of the form
+            {'paragraph id' : {'text', 'spans'} }
+    """
+    paragraphs_spans_mapper = {}
+
+    for par_idx, paragraph in paragraphs_mapper.items():
+        paragraphs_spans_mapper[par_idx] = {'text' : paragraph, 'spans' : get_spans_from_text(paragraph)}
+
+    return paragraphs_spans_mapper
