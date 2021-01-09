@@ -16,15 +16,17 @@ class CustomQADataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-      
-        paragraph_text = self.paragraphs_mapper[self.input_list.iloc[idx]["paragraph_id"]]
+
+        paragraph_id = self.input_list.iloc[idx]["paragraph_id"]
+        question_id = self.input_list.iloc[idx]["question_id"]
+        answer_start = self.output_list.iloc[idx]["answer_start"]
+        answer_text = self.output_list.iloc[idx]["answer_text"]
+
+        paragraph_text = self.paragraphs_mapper[paragraph_id]
         paragraph_emb = self.data_converter.word_sequence_to_embedding(paragraph_text)
 
-        question_text = self.questions_mapper[self.input_list.iloc[idx]["question_id"]]
+        question_text = self.questions_mapper[question_id]
         question_emb = self.data_converter.word_sequence_to_embedding(question_text)
 
-        out = self.output_list.iloc[idx]
-
+        out = self.data_converter.encode_answer(paragraph_id, answer_start, answer_text)
         return paragraph_emb, question_emb, out
-
-

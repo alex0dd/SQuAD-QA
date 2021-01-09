@@ -29,13 +29,18 @@ class DataConverter:
                 embeddings.append(emb)
         return torch.tensor(embeddings, dtype=torch.float32)
 
-    def encode_answer(self, paragraph_id: int, answer_start: int, answer_text: str) -> Tuple[int,int]:
+    def encode_answer(self, paragraph_id: int, answer_start: int, answer_text: str):
+        """
+        Returns:
+            A torch.tensor with shape [2] where the first element is 
+            the span_start and the second one is the span_stop
+        """
         answer_end = answer_start + len(answer_text)
         answer_span = []
         for idx, span in enumerate(self.paragraphs_spans_mapper[paragraph_id]['spans']):
             if not (answer_end <= span[0] or answer_start >= span[1]):
                 answer_span.append(idx)
-        return answer_span[0], answer_span[-1]
+        return torch.tensor([answer_span[0], answer_span[-1]]) 
 
     def decode_answer(self, paragraph_id: int, answer_encoded: Tuple[int,int]) -> str:
         text = self.paragraphs_spans_mapper[paragraph_id]['text']
@@ -57,4 +62,4 @@ def padder_collate_fn(sample_list):
     out = [sample[2] for sample in sample_list]
     paragraph_emb_padded = torch.nn.utils.rnn.pad_sequence(paragraph_emb)
     question_emb_padded = torch.nn.utils.rnn.pad_sequence(question_emb)
-    return paragraph_emb_padded, question_emb_padded, out
+    return paragraph_emb_padded, question_emb_padded, torch.stack(out)
