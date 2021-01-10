@@ -73,5 +73,5 @@ def padder_collate_fn(sample_list):
     out = [sample[2] for sample in sample_list]
     paragraph_emb_padded = torch.nn.utils.rnn.pad_sequence(paragraph_emb, batch_first=True)
     question_emb_padded = torch.nn.utils.rnn.pad_sequence(question_emb, batch_first=True)
-    answer_emb_padded = torch.nn.utils.rnn.pad_sequence(out, batch_first=True)
-    return paragraph_emb_padded, question_emb_padded, answer_emb_padded
+    #answer_emb_padded = torch.nn.utils.rnn.pad_sequence(out, batch_first=True)
+    return paragraph_emb_padded, question_emb_padded, torch.stack(out)#answer_emb_padded
