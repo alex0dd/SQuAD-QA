@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from typing import Tuple
+from typing import Tuple, List
 
 class DataConverter:
 
@@ -11,7 +11,18 @@ class DataConverter:
         self.paragraphs_spans_mapper = paragraphs_spans_mapper
         self.oovs_memory = {}
   
-    def word_sequence_to_embedding(self, seq):
+    def word_sequence_to_embedding(self, seq: List[str]) -> torch.Tensor:
+        """
+        Given a list of string words/tokens, returns their embedding
+        according to the class's embedding model.
+        
+        Args:
+            seq (List[str]): input sequence of words/tokens to embed.
+        Returns:
+            embeddings (torch.Tensor): torch tensor containing 
+                the embeddings for each word of the input sequence.
+        """
+        
         embeddings = []
         for w in seq:
             if w in self.embedding_model:
