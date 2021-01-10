@@ -1,7 +1,7 @@
 import pandas as pd
 
 from . import Document
-from typing import Tuple, List, Dict, Any
+from typing import Union, Tuple, List, Dict, Any
 
 def build_mappers_and_dataframe(documents_list: List[Document]) -> Tuple[Dict[str, str], Dict[str, str], pd.DataFrame]:
     """
@@ -46,16 +46,24 @@ def build_mappers_and_dataframe(documents_list: List[Document]) -> Tuple[Dict[st
                     })
     return paragraphs_mapper, questions_mapper, pd.DataFrame(dataframe_list)
 
-def get_spans_from_text(text: str) -> List[Tuple[int,int]]:
+def get_spans_from_text(text: Union[str, List[str]]) -> List[Tuple[int,int]]:
     """
-    Given a text string return the list of spans, where each span represent
+    Given a text string or a list of string tokens,
+    return the list of spans, where each span represents
     the single word/token inside the text in the form of:
         ( start_position, start_position + len(token) )
     """
     current = 0
     spans = []
 
-    tokens = text.split()
+    if type(text) == str:
+        tokens = text.split()
+    else:
+        # already tokenized
+        tokens = text
+        # restore string structure to use find on string
+        text = " ".join(text)
+    
     for token in tokens:
         current = text.find(token, current)
         if current < 0:
