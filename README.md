@@ -20,6 +20,7 @@ pip install pandas
 pip install matplotlib
 pip install scikit-learn
 pip install gensim
+pip install nltk
 
 # setup jupyter notebook support
 conda install -c anaconda ipykernel
