@@ -29,4 +29,13 @@ class CustomQADataset(torch.utils.data.Dataset):
         question_emb = self.data_converter.word_sequence_to_embedding(question_text)
 
         out = self.data_converter.encode_answer(paragraph_id, answer_start, answer_text)
+        # for each token, assign a class (1 -> nothing, 2 -> start/end of answer)
+        out_emb_start = torch.ones(paragraph_emb.shape[0])
+        out_emb_end = torch.ones(paragraph_emb.shape[0])
+        out_emb_start[out[0]] = 2 # arbitrary class for start
+        # end of answer class can be the same as start, 
+        # since they will be classified by different heads
+        out_emb_end[out[1]] = 2 # arbitrary class for end
+        out = torch.stack([out_emb_start, out_emb_end], dim=-1)
+        
         return paragraph_emb, question_emb, out
