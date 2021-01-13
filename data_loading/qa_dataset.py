@@ -40,4 +40,4 @@ class CustomQADataset(torch.utils.data.Dataset):
         out = torch.stack([out_emb_start, out_emb_end], dim=-1)
         """
         
-        return paragraph_emb, question_emb, out
+        return paragraph_emb, question_emb, out, paragraph_id, question_id
