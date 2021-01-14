@@ -46,7 +46,7 @@ class Evaluator(object):
     @staticmethod
     def CleanAnswer(answer):
         answer = answer.lower()
-        if isinstance(answer, unicode):
+        if isinstance(answer, str):
             answer = answer.replace(u'\u00a0', ' ')
         else:
             answer = answer.replace('\xc2\xa0', ' ')
