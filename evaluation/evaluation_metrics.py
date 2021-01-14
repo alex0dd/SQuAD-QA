@@ -7,28 +7,19 @@ import json
 import sys
 
 class Evaluator(object):
-    def __init__(self, path=None, articles=None, restrict_to_titles=None):
-        """
-        Specify either path or articles. Path should point to the JSON file
-        downloaded from the website. Articles is a list of articles as found
-        in the data field of the file downloaded from the website.
-        
-        restrict_to_titles, if specified, should be a set of article titles.
-        Only articles with those titles will be used for evaluation.
-        """
-        assert (path is None) != (articles is None)
-        if path is not None:
-            with open(path, 'r') as fileobj:
-                articles = json.loads(fileobj.read())['data']
+    def __init__(self, documents_list):
+    	# Build the dictionary question_id-->true_anwers_list
         self._answers = {}
-        for article in articles:
-            if restrict_to_titles is not None and article['title'] not in restrict_to_titles:
-                continue
-            for paragraph in article['paragraphs']:
-                for qa in paragraph['qas']:
-                    answers = self._answers[qa['id']] = []
-                    for answer in qa['answers']:
-                        answers.append(answer['text'])
+
+        for document in documents_list:
+	        # for each paragraph
+	        for paragraph in document.paragraphs:
+	            # for each question
+	            for question in paragraph.questions:
+	            	answers = self._answers[question.id] = []
+	            	for answer in question.answers:
+	            		answers.append(answer.text)
+
 
     def ExactMatch(self, predictions):
         """
@@ -105,6 +96,7 @@ class Evaluator(object):
 
         return f1
 
+'''
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         print 'Usage: <dataset file (dev.json)> <predictions file (predictions.json)>'
@@ -121,3 +113,4 @@ if __name__ == '__main__':
     stats['exact_match'] = evaluator.ExactMatch(predictions)
     stats['f1'] = evaluator.F1(predictions)
     print json.dumps(stats)
+'''
