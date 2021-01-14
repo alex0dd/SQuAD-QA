@@ -26,7 +26,7 @@ class Evaluator(object):
         Accepts a dict from question ID to predicted answer.
         """
         total = 0
-        for question_id in self._answers.iterkeys():
+        for question_id in self._answers.keys():
             predicted_answer = predictions.get(question_id)
             if predicted_answer is not None and self.ExactMatchSingle(question_id, predicted_answer):
                 total += 1
@@ -67,7 +67,7 @@ class Evaluator(object):
         Accepts a dict from question ID to predicted answer.
         """
         total = 0
-        for question_id in self._answers.iterkeys():
+        for question_id in self._answers.keys():
             predicted_answer = predictions.get(question_id)
             if predicted_answer is not None:
                 total += self.F1Single(question_id, predicted_answer)
