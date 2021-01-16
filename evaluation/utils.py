@@ -2,7 +2,10 @@ import torch
 
 def extract_answer(paragraph_tokens, start_idx, end_idx):
     answer_tokens = []
-    if start_idx == end_idx:
+    if start_idx >= len(paragraph_tokens):
+        # out of bounds
+        print("Might fail", paragraph_tokens, "len",len(paragraph_tokens) ,"start",start_idx)
+    elif start_idx == end_idx:
         answer_tokens.append(paragraph_tokens[start_idx])
     else:
         for i in range(min(end_idx-start_idx, len(paragraph_tokens)-start_idx)):
