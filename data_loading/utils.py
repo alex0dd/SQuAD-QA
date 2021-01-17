@@ -2,6 +2,48 @@ import torch
 import numpy as np
 from typing import Tuple, List
 
+
+from nltk.tokenize import MWETokenizer, TreebankWordTokenizer
+
+class AugmentedAnswerSpanning:
+    
+    def __init__(self):
+        self.treebank_tokenizer = TreebankWordTokenizer()
+        self.mwe_tokenizer = MWETokenizer(separator='')
+        self.mwe_tokenizer.add_mwe(('<', 'ANS_START', '>'))
+        self.mwe_tokenizer.add_mwe(('<', 'ANS_END', '>'))
+
+        self.start_indicator = "<ANS_START>"
+        self.end_indicator = "<ANS_END>"
+
+    def __add_in_middle(self, string, pos, to_add):
+        """
+        Given a string, a position and a substring, 
+        adds the substring at position index of the string.
+        """
+        return string[:pos] + to_add + string[pos:]
+
+    def augment_string(self, string, answer_start_idx, answer_end_idx):
+        """
+        Given a string, adds the start and end indicators at right indexes
+        """
+        start_aug = self.__add_in_middle(string, answer_start_idx, self.start_indicator)
+        end_aug = self.__add_in_middle(start_aug, len(self.start_indicator) + answer_end_idx, self.end_indicator)
+        return end_aug
+
+    def get_indexes_from_augmented_string(self, string):
+        tokenized_aug = self.mwe_tokenizer.tokenize(self.treebank_tokenizer.tokenize(string))
+        # get start of answer span index
+        index_of_start_indicator = tokenized_aug.index(self.start_indicator)
+        # remove index from string (now it will coincide with span start)
+        tokenized_aug.pop(index_of_start_indicator)
+        # same procedure for the end of span
+        index_of_end_indicator = tokenized_aug.index(self.end_indicator)
+        tokenized_aug.pop(index_of_end_indicator)
+        index_of_end_indicator -= 1
+        return tokenized_aug, (index_of_start_indicator, index_of_end_indicator)
+
+
 class DataConverter:
 
     def __init__(self, embedding_model, paragraphs_spans_mapper):
