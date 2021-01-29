@@ -5,17 +5,18 @@ from typing import Union, Tuple, List, Dict, Any
 
 def build_mappers_and_dataframe(documents_list: List[Document], limit_answers: int = -1) -> Tuple[Dict[str, str], pd.DataFrame]:
     """
-    Given a list of SQuAD Document objects, returns mappers to transform from
-    paragraph id to paragraph text, question id to question text, and
-    a dataframe containing paragraph id, question id and answer details.
-
+    Given a list of SQuAD Document objects, returns mapper to transform from
+    paragraph id to paragraph text and a dataframe containing paragraph id, 
+    question id, text and answer details.
     Args:
         documents_list (List[Document]): list of parsed SQuAD document objects.
+        limit_answers (int): limit number of returned answers per question
+            to this amount (-1 to return all the available answers).
 
     Returns:
         paragraphs_mapper: mapper from paragraph id to paragraph text
         dataframe: Pandas dataframe with the following schema
-            (paragraph_id, question_id, answer_id, answer_start, answer_text)
+            (paragraph_id, question_id, question_text, answer_id, answer_start, answer_text)
     """
 
     # type for np array: np.ndarray
