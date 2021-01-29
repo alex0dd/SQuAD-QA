@@ -3,27 +3,25 @@ import pandas as pd
 from . import Document
 from typing import Union, Tuple, List, Dict, Any
 
-def build_mappers_and_dataframe(documents_list: List[Document]) -> Tuple[Dict[str, str], Dict[str, str], pd.DataFrame]:
+def build_mappers_and_dataframe(documents_list: List[Document], limit_answers: int = -1) -> Tuple[Dict[str, str], pd.DataFrame]:
     """
-    Given a list of SQuAD Document objects, returns mappers to transform from
-    paragraph id to paragraph text, question id to question text, and
-    a dataframe containing paragraph id, question id and answer details.
-
+    Given a list of SQuAD Document objects, returns mapper to transform from
+    paragraph id to paragraph text and a dataframe containing paragraph id, 
+    question id, text and answer details.
     Args:
         documents_list (List[Document]): list of parsed SQuAD document objects.
+        limit_answers (int): limit number of returned answers per question
+            to this amount (-1 to return all the available answers).
 
     Returns:
         paragraphs_mapper: mapper from paragraph id to paragraph text
-        questions_mapper: mapper from question id to question text
         dataframe: Pandas dataframe with the following schema
-            (paragraph_id, question_id, answer_id, answer_start, answer_text)
+            (paragraph_id, question_id, question_text, answer_id, answer_start, answer_text)
     """
 
     # type for np array: np.ndarray
     # given a paragraph id, maps the paragraph to its text or embeddings (or both)
     paragraphs_mapper = {}
-    # given a question id, maps the question to its text or embeddings (or both)
-    questions_mapper = {}
     # dataframe
     dataframe_list = []
     for doc_idx, document in enumerate(documents_list):
@@ -34,17 +32,20 @@ def build_mappers_and_dataframe(documents_list: List[Document]) -> Tuple[Dict[st
             # for each question
             for question in paragraph.questions:
                 question_id = question.id
-                questions_mapper[question_id] = question.question.strip()
-                for answer_id, answer in enumerate(question.answers):
+                question_text = question.question.strip()
+                # take only "limit_answers" answers for every question.
+                answer_range = len(question.answers) if limit_answers == -1 else limit_answers
+                for answer_id, answer in enumerate(question.answers[:answer_range]):
                     # build dataframe entry
                     dataframe_list.append({
                         "paragraph_id": par_id,
                         "question_id": question_id,
                         "answer_id": answer_id,
                         "answer_start": answer.answer_start,
-                        "answer_text": answer.text.strip()
+                        "answer_text": answer.text.strip(),
+                        "question_text": question_text
                     })
-    return paragraphs_mapper, questions_mapper, pd.DataFrame(dataframe_list)
+    return paragraphs_mapper, pd.DataFrame(dataframe_list)
 
 def get_spans_from_text(text: Union[str, List[str]]) -> List[Tuple[int,int]]:
     """

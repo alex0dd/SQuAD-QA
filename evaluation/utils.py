@@ -13,7 +13,7 @@ def extract_answer(paragraph_tokens, start_idx, end_idx):
     return " ".join(answer_tokens)
 
 
-def build_evaluation_dict(model, dataloader, paragraphs_mapper, questions_mapper, device):
+def build_evaluation_dict(model, dataloader, paragraphs_mapper, device):
     # Build the evaluation dict
     eval_dict = {}
     model.eval()
