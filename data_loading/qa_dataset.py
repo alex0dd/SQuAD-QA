@@ -1,9 +1,52 @@
 import torch
 
+class CustomQADatasetBERT(torch.utils.data.Dataset):
+    """Custom text dataset for Huggingface BERT models."""
+
+    def __init__(self, tokenizer_fn, df, paragraphs_mapper):
+        super(CustomQADatasetBERT, self).__init__()
+        self.input_list = df[["paragraph_id", "question_text", "question_id"]]
+        self.output_list = df[["tokenizer_answer_start", "tokenizer_answer_end"]]
+        self.paragraphs_mapper = paragraphs_mapper
+        self.tokenizer_fn = tokenizer_fn
+
+    def __len__(self):
+        return len(self.input_list)
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        paragraph_id = self.input_list.iloc[idx]["paragraph_id"]
+        question_id = self.input_list.iloc[idx]["question_id"]
+        question_text = self.input_list.iloc[idx]["question_text"]
+        tokenizer_answer_start = self.output_list.iloc[idx]["tokenizer_answer_start"]
+        tokenizer_answer_end = self.output_list.iloc[idx]["tokenizer_answer_end"]
+
+        paragraph_text = self.paragraphs_mapper[paragraph_id]
+        tokenized_input_pair = self.tokenizer_fn(question_text, paragraph_text)
+        
+        #input_ids = torch.tensor(tokenized_input_pair["input_ids"], dtype=torch.long)
+        #attention_mask = torch.tensor(tokenized_input_pair["attention_mask"], dtype=torch.long)
+        input_ids = tokenized_input_pair["input_ids"]
+        attention_mask = tokenized_input_pair["attention_mask"]
+
+        out_span = torch.tensor([tokenizer_answer_start, tokenizer_answer_end])
+        
+        # NOTE: DistilBERT doesn’t have token_type_ids
+        return {
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "out_span": out_span,
+            "paragraph_id": paragraph_id,
+            "question_id": question_id
+        }
+
 class CustomQADataset(torch.utils.data.Dataset):
     """Custom text dataset."""
 
     def __init__(self, data_converter, df, paragraphs_mapper):
+        super(CustomQADataset, self).__init__()
         self.input_list = df[["paragraph_id", "question_id", "question_text"]]
         self.output_list = df[["answer_id", "answer_start", "answer_text"]]
         self.paragraphs_mapper = paragraphs_mapper
