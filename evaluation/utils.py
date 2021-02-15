@@ -1,5 +1,7 @@
 import torch
 
+from models.utils import SpanExtractor
+
 def extract_answer(paragraph_tokens, start_idx, end_idx):
     answer_tokens = []
     if start_idx >= len(paragraph_tokens):
@@ -19,22 +21,17 @@ def build_evaluation_dict(model, dataloader, paragraphs_mapper, device):
     model.eval()
     with torch.no_grad():
         for batch in dataloader:
-            paragraph_in = batch["paragraph_emb"]
-            question_in = batch["question_emb"]
             answer_spans_start = batch["y_gt"][:, 0]
             answer_spans_end = batch["y_gt"][:, 1]
             paragraph_id = batch["paragraph_id"]
             question_id = batch["question_id"]
             # Place to right device
-            paragraph_in = paragraph_in.to(device)
-            question_in = question_in.to(device)
             answer_spans_start = answer_spans_start.to(device)
             answer_spans_end = answer_spans_end.to(device)
             # Run forward pass
-            pred_answer_start_scores, pred_answer_end_scores = model(paragraph_in, question_in)
+            pred_answer_start_scores, pred_answer_end_scores = model(batch)
             # Get span indexes
-            pred_span_start_idxs = torch.argmax(pred_answer_start_scores, axis=-1).cpu().detach()
-            pred_span_end_idxs = torch.argmax(pred_answer_end_scores, axis=-1).cpu().detach()
+            pred_span_start_idxs, pred_span_end_idxs = SpanExtractor.extract_most_probable(pred_answer_start_scores, pred_answer_end_scores)
             # extract answer texts from paragraphs
             for sample_idx in range(len(paragraph_id)):
                 paragraph_sample_id = paragraph_id[sample_idx]
