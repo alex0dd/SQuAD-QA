@@ -147,6 +147,7 @@ def build_mappers_and_dataframe_bert(
                         split_paragraphs_mapper[split_par_id] = split_text
                         # build dataframe entry
                         dataframe_list.append({
+                            "doc_id": doc_idx,
                             "paragraph_id": split_par_id,
                             "question_id": question_id,
                             "answer_id": answer_id,
@@ -193,6 +194,7 @@ def build_mappers_and_dataframe(documents_list: List[Document], limit_answers: i
                 for answer_id, answer in enumerate(question.answers[:answer_range]):
                     # build dataframe entry
                     dataframe_list.append({
+                        "doc_id": doc_idx,
                         "paragraph_id": par_id,
                         "question_id": question_id,
                         "answer_id": answer_id,
