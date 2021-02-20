@@ -83,7 +83,7 @@ def build_evaluation_dict_bert(model, dataloader, paragraphs_mapper, tokenizer, 
                 question_sample_id = question_id[sample_idx]
                 pred_span_start_sample = pred_span_start_idxs[sample_idx]
                 pred_span_end_sample = pred_span_end_idxs[sample_idx]
-                pred_answer_text = extract_answer(tokenized_input_sample,
+                pred_answer_text = extract_answer_bert(tokenized_input_sample,
                                                   tokenizer,
                                                   pred_span_start_sample,
                                                   pred_span_end_sample)
