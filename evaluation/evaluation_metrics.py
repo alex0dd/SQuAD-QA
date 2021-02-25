@@ -6,20 +6,11 @@ from collections import Counter
 import json
 import sys
 
+
 class Evaluator(object):
-    def __init__(self, documents_list):
-    	# Build the dictionary question_id-->true_anwers_list
-        self._answers = {}
-
-        for document in documents_list:
-	        # for each paragraph
-	        for paragraph in document.paragraphs:
-	            # for each question
-	            for question in paragraph.questions:
-	            	answers = self._answers[question.id] = []
-	            	for answer in question.answers:
-	            		answers.append(answer.text)
-
+    def __init__(self, ground_truth_dict):
+    	# dictionary question_id-->true_anwers_list
+        self._answers = ground_truth_dict
 
     def ExactMatch(self, predictions):
         """
