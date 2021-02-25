@@ -3,6 +3,19 @@ from tqdm import tqdm
 
 from models.utils import SpanExtractor
 
+def build_ground_truth_dict(documents_list):
+    # Build the dictionary question_id-->true_anwers_list
+    gt_dict = {}
+    for document in documents_list:
+        # for each paragraph
+        for paragraph in document.paragraphs:
+            # for each question
+            for question in paragraph.questions:
+                answers = gt_dict[question.id] = []
+                for answer in question.answers:
+                    answers.append(answer.text)
+    return gt_dict
+
 def extract_answer(paragraph_tokens, start_idx, end_idx):
     answer_tokens = []
     if start_idx >= len(paragraph_tokens):
