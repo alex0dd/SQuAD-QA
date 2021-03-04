@@ -68,7 +68,10 @@ def build_evaluation_dict(model, dataloader, paragraphs_mapper, device, show_pro
                                                   pred_span_start_sample,
                                                   pred_span_end_sample)
                 # add new (question_id, pred_answer_text) to the eval dict:
-                eval_dict[question_sample_id] = pred_answer_text
+                if question_sample_id not in eval_dict:
+                    eval_dict[question_sample_id] = pred_answer_text
+                elif (question_sample_id in eval_dict) and (eval_dict[question_sample_id] == ""):
+                    eval_dict[question_sample_id] = pred_answer_text
             
     return eval_dict
 
@@ -100,7 +103,11 @@ def build_evaluation_dict_bert(model, dataloader, paragraphs_mapper, tokenizer, 
                                                   tokenizer,
                                                   pred_span_start_sample,
                                                   pred_span_end_sample)
+
                 # add new (question_id, pred_answer_text) to the eval dict:
-                eval_dict[question_sample_id] = pred_answer_text
-            
+                if question_sample_id not in eval_dict:
+                    eval_dict[question_sample_id] = pred_answer_text
+                elif (question_sample_id in eval_dict) and (eval_dict[question_sample_id] == ""):
+                    eval_dict[question_sample_id] = pred_answer_text
+                
     return eval_dict
