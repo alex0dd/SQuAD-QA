@@ -22,7 +22,12 @@ def extract_answer(paragraph_tokens, start_idx, end_idx):
         # out of bounds
         print("Might fail", paragraph_tokens, "len",len(paragraph_tokens) ,"start",start_idx)
     elif start_idx == end_idx:
-        answer_tokens.append(paragraph_tokens[start_idx])
+        if start_idx == 0:
+        	# No answer case
+        	answer_tokens.append("")
+        else:
+        	# Single-word answer case
+            answer_tokens.append(paragraph_tokens[start_idx])
     else:
         for i in range(min(end_idx-start_idx, len(paragraph_tokens)-start_idx)):
             answer_tokens.append(paragraph_tokens[start_idx+i])
@@ -34,7 +39,12 @@ def extract_answer_bert(tokenized_input, tokenizer, start_idx, end_idx):
         # out of bounds
         print("Might fail", tokenized_input, "len",len(tokenized_input) ,"start",start_idx)
     elif start_idx == end_idx:
-        answer_tokens.append(tokenizer.decode(tokenized_input[start_idx], skip_special_tokens=True))
+    	if start_idx == 0:
+    		# No answer case
+    		answer_tokens.append("")
+    	else:
+    		# Single-word answer case
+            answer_tokens.append(tokenizer.decode(tokenized_input[start_idx], skip_special_tokens=True))
     else:
         answer_tokens.append(tokenizer.decode(tokenized_input[start_idx:end_idx], skip_special_tokens=True))
     return " ".join(answer_tokens)
