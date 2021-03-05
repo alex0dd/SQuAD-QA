@@ -85,7 +85,7 @@ def build_evaluation_dict(model, dataloader, paragraphs_mapper, device, show_pro
             
     return eval_dict
 
-def build_evaluation_dict_bert(model, dataloader, paragraphs_mapper, tokenizer, device, show_progress=False):
+def build_evaluation_dict_bert(model, scaler, dataloader, paragraphs_mapper, tokenizer, device, show_progress=False):
     # Build the evaluation dict
     eval_dict = {}
     model.eval()
@@ -99,8 +99,10 @@ def build_evaluation_dict_bert(model, dataloader, paragraphs_mapper, tokenizer, 
             # Place to right device
             answer_spans_start = answer_spans_start.to(device)
             answer_spans_end = answer_spans_end.to(device)
-            # Run forward pass
-            pred_answer_start_scores, pred_answer_end_scores = model(batch)
+            # Use Automatic Mixed Precision if enabled
+            with torch.cuda.amp.autocast(enabled=scaler.is_enabled()):
+                # Run forward pass
+                pred_answer_start_scores, pred_answer_end_scores = model(batch)
             # Get span indexes
             pred_span_start_idxs, pred_span_end_idxs = SpanExtractor.extract_most_probable(pred_answer_start_scores, pred_answer_end_scores)
             # extract answer texts from paragraphs
