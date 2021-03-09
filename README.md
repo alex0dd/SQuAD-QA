@@ -22,6 +22,7 @@ pip install scikit-learn
 pip install gensim
 pip install nltk
 pip install transformers
+pip install tqdm
 
 # setup jupyter notebook support
 conda install -c anaconda ipykernel
