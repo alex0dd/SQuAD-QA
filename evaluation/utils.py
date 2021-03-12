@@ -113,3 +113,66 @@ def build_evaluation_dict_bert(model, scaler, dataloader, paragraphs_mapper, tok
                     eval_dict[question_sample_id] = pred_answer_text
                 
     return eval_dict
+
+def build_evaluation_dict_bert_qualitative(model, scaler, dataloader, paragraphs_mapper, tokenizer, device, show_progress=False):
+    # Build the evaluation dict
+    eval_dict = {}
+    errors_dict = {}
+    model.eval()
+    wrapped_dataloader = tqdm(dataloader) if show_progress else dataloader
+    with torch.no_grad():
+        for batch in wrapped_dataloader:
+            answer_spans_start = batch["y_gt"][:, 0]
+            answer_spans_end = batch["y_gt"][:, 1]
+            paragraph_id = batch["paragraph_id"]
+            question_id = batch["question_id"]
+            # Place to right device
+            answer_spans_start = answer_spans_start.cpu().numpy()
+            answer_spans_end = answer_spans_end.cpu().numpy()
+            # Use Automatic Mixed Precision if enabled
+            with torch.cuda.amp.autocast(enabled=scaler.is_enabled()):
+                # Run forward pass
+                pred_answer_start_scores, pred_answer_end_scores = model(batch)
+            # Get span indexes
+            pred_span_start_idxs, pred_span_end_idxs = SpanExtractor.extract_most_probable(pred_answer_start_scores, pred_answer_end_scores)
+            # extract answer texts from paragraphs
+            for sample_idx in range(len(paragraph_id)):
+                tokenized_input_sample = batch["input_ids"][sample_idx]
+                question_sample_id = question_id[sample_idx]
+                pred_span_start_sample = pred_span_start_idxs[sample_idx]
+                pred_span_end_sample = pred_span_end_idxs[sample_idx]
+                pred_answer_text = extract_answer_bert(tokenized_input_sample,
+                                                  tokenizer,
+                                                  pred_span_start_sample,
+                                                  pred_span_end_sample)
+                pred_answer_text = pred_answer_text.strip()
+                
+                # add new (question_id, pred_answer_text) to the eval dict:
+                if question_sample_id not in eval_dict:
+                    eval_dict[question_sample_id] = pred_answer_text
+                    if (answer_spans_start[sample_idx] != pred_span_start_idxs[sample_idx]) or (answer_spans_end[sample_idx] != pred_span_end_idxs[sample_idx]):
+                        gt_answer_text = extract_answer_bert(tokenized_input_sample,
+                                      tokenizer,
+                                      answer_spans_start[sample_idx],
+                                      answer_spans_end[sample_idx])
+                        errors_dict[question_id[sample_idx]] = {
+                            "pred_text": pred_answer_text,
+                            "gt_text": gt_answer_text.strip(),
+                            "pred_span": (pred_span_start_idxs[sample_idx].item(), pred_span_end_idxs[sample_idx].item()),
+                            "gt_span": (answer_spans_start[sample_idx], answer_spans_end[sample_idx])
+                        }
+                elif (question_sample_id in eval_dict) and (eval_dict[question_sample_id] == ""):
+                    eval_dict[question_sample_id] = pred_answer_text
+                    if (answer_spans_start[sample_idx] != pred_span_start_idxs[sample_idx]) or (answer_spans_end[sample_idx] != pred_span_end_idxs[sample_idx]):
+                        gt_answer_text = extract_answer_bert(tokenized_input_sample,
+                                      tokenizer,
+                                      answer_spans_start[sample_idx],
+                                      answer_spans_end[sample_idx])
+                        errors_dict[question_id[sample_idx]] = {
+                            "pred_text": pred_answer_text,
+                            "gt_text": gt_answer_text.strip(),
+                            "pred_span": (pred_span_start_idxs[sample_idx].item(), pred_span_end_idxs[sample_idx].item()),
+                            "gt_span": (answer_spans_start[sample_idx], answer_spans_end[sample_idx])
+                        }
+
+    return eval_dict, errors_dict
