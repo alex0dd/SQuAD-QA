@@ -159,6 +159,97 @@ def build_mappers_and_dataframe_bert(
                         })
     return split_paragraphs_mapper, pd.DataFrame(dataframe_list)
 
+
+def build_mappers_and_dataframe_bert_eval(
+    tokenizer,
+    tokenizer_fn,
+    documents_list: List[Document], 
+    limit_answers: int = -1
+    ) -> Tuple[Dict[str, str], pd.DataFrame]:
+    """
+    Given a list of SQuAD Document objects, returns mapper to transform from
+    paragraph id to paragraph text and a dataframe containing paragraph id, 
+    question id, text and answer details. The function also ensures that
+    returned paragraph text won't exceed maximum length required by BERT, by
+    splitting long paragraphs into multiple parts.
+    Args:
+        tokenizer: Huggingface tokenizer
+        tokenizer_fn: helper encoder function for tokenizer
+        documents_list (List[Document]): list of parsed SQuAD document objects.
+        limit_answers (int): limit number of returned answers per question
+            to this amount (-1 to return all the available answers).
+
+    Returns:
+        paragraphs_mapper: mapper from paragraph id to paragraph text
+        dataframe: Pandas dataframe with the following schema
+            (paragraph_id, question_id, question_text, answer_id, answer_start, answer_text)
+    """
+
+    # type for np array: np.ndarray
+    # given a paragraph id, maps the paragraph to its text
+    split_paragraphs_mapper = {}
+    # dataframe
+    dataframe_list = []
+    for doc_idx, document in enumerate(documents_list):
+        # for each paragraph
+        for par_idx, paragraph in enumerate(document.paragraphs):
+            par_text = paragraph.context.strip()
+            # for each question
+            for question in paragraph.questions:
+                question_id = question.id
+                question_text = question.question.strip()
+                # take only "limit_answers" answers for every question.
+                answer_range = len(question.answers) if limit_answers == -1 else limit_answers
+                for answer_id, answer in enumerate(question.answers[:answer_range]):
+                    # NOTE: in training set, there's only one answer per question.
+                    answer_text = answer.text.strip()
+                    # get span
+                    answer_start = answer.answer_start
+                    answer_end = answer.answer_start + len(answer_text)
+
+                    par_splits, split_answer_spans = split_paragraph_if_needed(
+                        par_text, 
+                        question_text, 
+                        (answer_start, answer_end),
+                        tokenizer,
+                        tokenizer_fn
+                    )
+                    
+                    pair_overflows = len(par_splits) > 1
+                    
+                    for split_idx, (split_text, split_ans_span) in enumerate(zip(par_splits, split_answer_spans)):
+                        """
+                        NOTE(Alex): 
+                        Since in tokenization phase we also use question, our ID depends on question too
+                        For example if for question1, the pair <question1, par> goes above the limit,
+                        but for <question2, par> it does not, then we'll still need to keep track of
+                        different splits of par, depending on each question.
+                        """
+                        if pair_overflows:
+                            split_par_id = "{}_{}_{}_{}".format(doc_idx, par_idx, question_id, split_idx)
+                        else:
+                            """
+                            If no length overflow, then we don't need question_id or split_idx.
+                            To optimize memory, we can map same splits to same id 
+                            (some pairs <question, par> won't overflow anyway)
+                            """
+                            split_par_id = "{}_{}".format(doc_idx, par_idx)
+                        split_paragraphs_mapper[split_par_id] = split_text
+                        # build dataframe entry
+                        dataframe_list.append({
+                            "doc_id": doc_idx,
+                            "paragraph_id": split_par_id,
+                            "question_id": question_id,
+                            "answer_id": answer_id,
+                            "answer_start": answer_start,
+                            "answer_text": answer_text,
+                            "question_text": question_text,
+                            "tokenizer_answer_start": split_ans_span[0],
+                            "tokenizer_answer_end": split_ans_span[1],
+                        })
+    return split_paragraphs_mapper, pd.DataFrame(dataframe_list)
+
+
 def build_mappers_and_dataframe(documents_list: List[Document], limit_answers: int = -1) -> Tuple[Dict[str, str], pd.DataFrame]:
     """
     Given a list of SQuAD Document objects, returns mapper to transform from

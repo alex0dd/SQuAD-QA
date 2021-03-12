@@ -23,8 +23,10 @@ class SquadFileParser:
 
     def __parse_question(self, question) -> Question:
         answers: List[Answer] = []
-        for answer in question["answers"]:
-            answers.append(self.__parse_answer(answer))
+        if "answers" in question:
+        	for answer in question["answers"]:
+        		answers.append(self.__parse_answer(answer))
+        		
         return Question(
                 question=question["question"], 
                 id=question["id"],
