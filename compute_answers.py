@@ -16,12 +16,12 @@ from typing import Tuple, List, Dict, Any, Union
 
 # Project imports
 from squad_data.parser import SquadFileParser
-from squad_data.utils import build_mappers_and_dataframe_bert
+from squad_data.utils import build_mappers_and_dataframe_bert_eval
 from evaluation.evaluate import evaluate_predictions
 from evaluation.utils import build_evaluation_dict_bert
 from utils import split_dataframe
-from data_loading.utils import bert_padder_collate_fn
-from data_loading.qa_dataset import CustomQADatasetBERT
+from data_loading.utils import bert_padder_collate_fn_eval
+from data_loading.qa_dataset import CustomQADatasetBERT_eval
 
 # Pytorch model related
 import torch
@@ -184,10 +184,10 @@ def main(path_to_json_file):
 		model.load_state_dict(torch.load(model_weights_filename, map_location=torch.device('cpu'))) #cpu
 	# Preprocess the input data
 	print("Preprocessing data...")
-	paragraphs_mapper, df = build_mappers_and_dataframe_bert(tokenizer, tokenizer_fn_preprocess, data, limit_answers=1)
+	paragraphs_mapper, df = build_mappers_and_dataframe_bert_eval(tokenizer, tokenizer_fn_preprocess, data)
 	# Prepare the data loader for the model
-	dataset_QA = CustomQADatasetBERT(tokenizer_fn_train, df, paragraphs_mapper)
-	data_loader = torch.utils.data.DataLoader(dataset_QA, collate_fn=bert_padder_collate_fn, batch_size=params_dict["train_params"]["batch_size_test"], shuffle=True)
+	dataset_QA = CustomQADatasetBERT_eval(tokenizer_fn_train, df, paragraphs_mapper)
+	data_loader = torch.utils.data.DataLoader(dataset_QA, collate_fn=bert_padder_collate_fn_eval, batch_size=params_dict["train_params"]["batch_size_test"], shuffle=True)
 	# Compute the predictions dictionary using the model
 	print("Computing predictions...")
 	pred_dict = build_evaluation_dict_bert(model, scaler, data_loader, paragraphs_mapper, tokenizer, device, show_progress=True)
