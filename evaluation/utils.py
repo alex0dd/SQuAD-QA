@@ -105,7 +105,7 @@ def build_evaluation_dict_bert(model, scaler, dataloader, paragraphs_mapper, tok
                                                   tokenizer,
                                                   pred_span_start_sample,
                                                   pred_span_end_sample)
-                pred_answer_text = pred_answer_text.stip()
+                pred_answer_text = pred_answer_text.strip()
                 # add new (question_id, pred_answer_text) to the eval dict:
                 if question_sample_id not in eval_dict:
                     eval_dict[question_sample_id] = pred_answer_text
