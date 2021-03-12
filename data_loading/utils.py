@@ -100,3 +100,21 @@ def bert_padder_collate_fn(sample_list):
             "y_gt":torch.stack(out),
             "paragraph_id":paragraph_id,
             "question_id":question_id}
+
+
+def bert_padder_collate_fn_eval(sample_list):
+    # NOTE: the tokenizer in dataloader already pads inputs to have same length of 384
+    input_ids_padded = [sample["input_ids"] for sample in sample_list]
+    attention_mask_padded = [sample["attention_mask"] for sample in sample_list]
+    paragraph_id = [sample["paragraph_id"] for sample in sample_list]
+    question_id = [sample["question_id"] for sample in sample_list]
+    # Convert inputs to Torch tensors
+    input_ids_padded = torch.tensor(input_ids_padded, dtype=torch.long)
+    attention_mask_padded = torch.tensor(attention_mask_padded, dtype=torch.long)
+    # Tensor adds an extra dimension, so remove it
+    input_ids_padded = input_ids_padded[:, 0, :]
+    attention_mask_padded = attention_mask_padded[:, 0, :]
+    return {"input_ids": input_ids_padded,
+            "attention_mask": attention_mask_padded,
+            "paragraph_id":paragraph_id,
+            "question_id":question_id}
