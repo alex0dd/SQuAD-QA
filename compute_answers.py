@@ -1,3 +1,4 @@
+print("Importing libraries...")
 # External imports
 import sys
 import copy
@@ -161,8 +162,9 @@ def main(path_to_json_file):
 	# Choose model to use
 	selected_model_name = "distilroberta"
 	params_dict = possible_models_dict[selected_model_name]
-	model_weights_filename = "trained_models/distilroberta_tpu_epochs_2.pt"
+	model_weights_filename = "trained_models/distilroberta_google_2_epochs.pt"
 	# Load and parse the data
+	print("Parsing the data...")
 	parser = SquadFileParser(path_to_json_file)
 	data = parser.parse_documents()
 	#Prepare the tokenizer
@@ -175,13 +177,19 @@ def main(path_to_json_file):
 	model = ParametricBertModelQA(768, 2, params_dict, dropout_rate=params_dict["train_params"]["dropout_rate"]).to(device)
 	scaler = torch.cuda.amp.GradScaler(enabled=USE_AMP)
 	# Load model from disk
-	model.load_state_dict(torch.load(model_weights_filename))
+	print("Loading Model weights...")
+	if device == "cuda":
+		model.load_state_dict(torch.load(model_weights_filename))
+	else:
+		model.load_state_dict(torch.load(model_weights_filename, map_location=torch.device('cpu'))) #cpu
 	# Preprocess the input data
+	print("Preprocessing data...")
 	paragraphs_mapper, df = build_mappers_and_dataframe_bert(tokenizer, tokenizer_fn_preprocess, data, limit_answers=1)
 	# Prepare the data loader for the model
 	dataset_QA = CustomQADatasetBERT(tokenizer_fn_train, df, paragraphs_mapper)
 	data_loader = torch.utils.data.DataLoader(dataset_QA, collate_fn=bert_padder_collate_fn, batch_size=params_dict["train_params"]["batch_size_test"], shuffle=True)
 	# Compute the predictions dictionary using the model
+	print("Computing predictions...")
 	pred_dict = build_evaluation_dict_bert(model, scaler, data_loader, paragraphs_mapper, tokenizer, device, show_progress=True)
 	# Save the dictionary as a JSON file
 	with open("predictions.txt", "w") as pred_file:
@@ -192,3 +200,5 @@ def main(path_to_json_file):
 if __name__ == '__main__':
 	if len(sys.argv) > 1:
 		main(sys.argv[1])
+	else:
+		print("Path to json file not found")
