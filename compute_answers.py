@@ -32,86 +32,11 @@ import transformers
 from timeit import default_timer as timer
 from tqdm import tqdm
 from transformers.optimization import AdamW
+
+from models import possible_models_dict
 from models.utils import SpanExtractor
 
 USE_AMP = True
-
-# Parameters dictionary
-def prepare_input_distilbert(inputs, device):
-    model_input = {}
-    model_input["input_ids"] = inputs["input_ids"].to(device)
-    model_input["attention_mask"] = inputs["attention_mask"].to(device)
-    return model_input
-
-def prepare_input_albert(inputs, device):
-    # for now we'll just copy distilbert since it works
-    model_input = {}
-    model_input["input_ids"] = inputs["input_ids"].to(device)
-    model_input["attention_mask"] = inputs["attention_mask"].to(device)
-    return model_input
-
-possible_models_dict = {
-    "distilbert" : {
-        "model_url" : "distilbert-base-uncased",
-        "tokenizer_url": "distilbert-base-uncased",
-        "tokenizer_max_length": 384,
-        "prepare_model_input_fn": prepare_input_distilbert,
-        "train_params": {
-            "epochs": 2,
-            "initial_lr": 0.00003,
-            "batch_size_train": 32,
-            "batch_size_val": 32,
-            "batch_size_test": 32,
-            "weight_decay": 0.01,
-            "dropout_rate": 0.1
-        }
-    },
-    "albert": {
-        "model_url": "albert-base-v2",
-        "tokenizer_url": "albert-base-v2",
-        "tokenizer_max_length": 384,
-        "prepare_model_input_fn": prepare_input_albert,
-        "train_params": {
-            "epochs": 2,
-            "initial_lr": 0.00003,
-            "batch_size_train": 8,
-            "batch_size_val": 8,
-            "batch_size_test": 8,
-            "weight_decay": 0.01,
-            "dropout_rate": 0.1
-        }
-    },
-    "distilroberta": {
-        "model_url": "distilroberta-base",
-        "tokenizer_url": "distilroberta-base",
-        "tokenizer_max_length": 384,
-        "prepare_model_input_fn": prepare_input_albert,
-        "train_params": {
-            "epochs": 2,
-            "initial_lr": 0.00003,
-            "batch_size_train": 8,
-            "batch_size_val": 8,
-            "batch_size_test": 8,
-            "weight_decay": 0.01,
-            "dropout_rate": 0.1
-        }
-    },
-    "bert": {
-        "model_url": "bert-base-uncased",
-        "tokenizer_url": "bert-base-uncased",
-        "tokenizer_max_length": 384,
-        "prepare_model_input_fn": prepare_input_albert,
-        "train_params": {
-            "epochs": 2,
-            "initial_lr": 0.00003,
-            "batch_size_train": 8,
-            "batch_size_val": 8,
-            "batch_size_test": 8,
-            "weight_decay": 0.01,
-            "dropout_rate": 0.1
-        }
-    }
-}
 
 def bert_tokenizer_fn(question, paragraph, tokenizer, max_length=384, doc_stride=128):
     pad_on_right = tokenizer.padding_side == "right"
@@ -174,7 +99,7 @@ def main(path_to_json_file):
 	# Set the device
 	device = "cuda" if torch.cuda.is_available() else "cpu"
 	# Define baseline model
-	model = ParametricBertModelQA(768, 2, params_dict, dropout_rate=params_dict["train_params"]["dropout_rate"]).to(device)
+	model = params_dict["span_model"](768, 2, params_dict, dropout_rate=params_dict["train_params"]["dropout_rate"]).to(device)
 	scaler = torch.cuda.amp.GradScaler(enabled=USE_AMP)
 	# Load model from disk
 	print("Loading Model weights...")
