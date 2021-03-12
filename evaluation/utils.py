@@ -57,13 +57,8 @@ def build_evaluation_dict(model, dataloader, paragraphs_mapper, device, show_pro
     wrapped_dataloader = tqdm(dataloader) if show_progress else dataloader
     with torch.no_grad():
         for batch in wrapped_dataloader:
-            answer_spans_start = batch["y_gt"][:, 0]
-            answer_spans_end = batch["y_gt"][:, 1]
             paragraph_id = batch["paragraph_id"]
             question_id = batch["question_id"]
-            # Place to right device
-            answer_spans_start = answer_spans_start.to(device)
-            answer_spans_end = answer_spans_end.to(device)
             # Run forward pass
             pred_answer_start_scores, pred_answer_end_scores = model(batch)
             # Get span indexes
@@ -92,13 +87,8 @@ def build_evaluation_dict_bert(model, scaler, dataloader, paragraphs_mapper, tok
     wrapped_dataloader = tqdm(dataloader) if show_progress else dataloader
     with torch.no_grad():
         for batch in wrapped_dataloader:
-            answer_spans_start = batch["y_gt"][:, 0]
-            answer_spans_end = batch["y_gt"][:, 1]
             paragraph_id = batch["paragraph_id"]
             question_id = batch["question_id"]
-            # Place to right device
-            answer_spans_start = answer_spans_start.to(device)
-            answer_spans_end = answer_spans_end.to(device)
             # Use Automatic Mixed Precision if enabled
             with torch.cuda.amp.autocast(enabled=scaler.is_enabled()):
                 # Run forward pass
