@@ -12,7 +12,6 @@ class ParametricBertModelQA(torch.nn.Module):
         self.qa_outputs = torch.nn.Linear(self.hidden_size, self.num_labels)
         self.prepare_input_fn = config_dict["prepare_model_input_fn"]
 
-    #@torch.cuda.amp.autocast() # goes OOM for whatever reason, don't use.
     def forward(self, inputs):
         # --- 1) Extract data from inputs dictionary and put it on right device
         curr_device = self.bert.device

@@ -37,7 +37,6 @@ def split_paragraph_if_needed(paragraph, question, answer_span, tokenizer, token
         sequence_ids = tokenized_input_pair.sequence_ids(offset_idx)
         # find start index of context segment
         context_segment_idx = sequence_ids.index(1)
-        # TODO(Alex): ADD QUICK FIX WITH n_special_tokens (but it's not a proper solution)
         span_start_offset_idx = index_of_first(
             tokenized_input_pair.offset_mapping[offset_idx][context_segment_idx:], 
             lambda span: span[0] <= ans_start <= span[1]

@@ -26,14 +26,11 @@ class CustomQADatasetBERT(torch.utils.data.Dataset):
         paragraph_text = self.paragraphs_mapper[paragraph_id]
         tokenized_input_pair = self.tokenizer_fn(question_text, paragraph_text)
         
-        #input_ids = torch.tensor(tokenized_input_pair["input_ids"], dtype=torch.long)
-        #attention_mask = torch.tensor(tokenized_input_pair["attention_mask"], dtype=torch.long)
         input_ids = tokenized_input_pair["input_ids"]
         attention_mask = tokenized_input_pair["attention_mask"]
 
         out_span = torch.tensor([tokenizer_answer_start, tokenizer_answer_end])
         
-        # NOTE: DistilBERT doesn’t have token_type_ids
         return {
             "input_ids": input_ids,
             "attention_mask": attention_mask,
@@ -65,8 +62,6 @@ class CustomQADatasetBERT_eval(torch.utils.data.Dataset):
         paragraph_text = self.paragraphs_mapper[paragraph_id]
         tokenized_input_pair = self.tokenizer_fn(question_text, paragraph_text)
         
-        #input_ids = torch.tensor(tokenized_input_pair["input_ids"], dtype=torch.long)
-        #attention_mask = torch.tensor(tokenized_input_pair["attention_mask"], dtype=torch.long)
         input_ids = tokenized_input_pair["input_ids"]
         attention_mask = tokenized_input_pair["attention_mask"]
         
