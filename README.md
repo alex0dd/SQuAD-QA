@@ -9,7 +9,7 @@ wget https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v1.1.json
 ```
 This will download both training dataset (40 MB) and a development dataset (4 MB).
 
-# Setting the environment
+## Setting the environment
 To setup the environment run the following commands:
 ```bash
 conda create -n squad_qa_pytorch python=3.8
@@ -28,3 +28,18 @@ pip install tqdm
 conda install -c anaconda ipykernel
 python -m ipykernel install --user --name=squad_qa_pytorch
 ```
+
+## Training and evaluation
+Training of BERT models is supported via [Train_model_GPU_BERT.ipynb](https://github.com/alexpod1000/SQuAD-QA/blob/main/Train_model_GPU_BERT.ipynb) and [Train_model_TPU_BERT.ipynb](https://github.com/alexpod1000/SQuAD-QA/blob/main/Train_model_TPU_BERT.ipynb) notebooks.
+
+The supported experiments can be found inside [this](https://github.com/alexpod1000/SQuAD-QA/blob/main/models/__init__.py) configurations file and include the following models: BERT, DistilBERT, ALBERT, DistilROBERTA.
+
+## Results
+The trained models obtain the following results on SQuAD-1.1 dev benchmark:
+| Model                        | F1            | EM    |
+| ---------------------------- |:-------------:| -----:|
+| ALBERT                       | 86.97         | 78.39 |
+| BERT                         | 81.51         | 71.82 |
+| DistilBERT                   | 78.96         | 68.68 |
+| DistilROBERTA                | 87.74         | 80.39 |
+| DistilROBERTA + Linear Layer | **88.09**     | **80.93** |
