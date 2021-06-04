@@ -16,13 +16,7 @@ conda create -n squad_qa_pytorch python=3.8
 conda activate squad_qa_pytorch
 
 conda install pytorch cudatoolkit=10.2 -c pytorch
-pip install pandas
-pip install matplotlib
-pip install scikit-learn
-pip install gensim
-pip install nltk
-pip install transformers
-pip install tqdm
+pip install -r requirements.txt
 
 # setup jupyter notebook support
 conda install -c anaconda ipykernel
